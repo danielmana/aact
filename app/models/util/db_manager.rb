@@ -23,10 +23,13 @@ module Util
     end
 
     def copy_dump_file_to_public_server
+      log("scp #{fm.pg_dump_file} #{static_file_dir}/postgres.dmp")
+      cmd="scp #{fm.pg_dump_file} #{static_file_dir}/postgres.dmp"
+
       # copy the dump file to the public server. It's much faster to load public db from its own server.
       # If this load fails, the file is over there for a quick load by hand if necessary.
       # We should reconfigure to just use that file & run pg_restore on the public server rather than here. How to do that, tho?
-      cmd="scp #{fm.pg_dump_file} ctti@#{public_host_name}:/#{static_file_dir}/dump_files"
+      #cmd="scp #{fm.pg_dump_file} ctti@#{public_host_name}:/#{static_file_dir}/dump_files"
       system(cmd)
     end
 
@@ -77,7 +80,7 @@ module Util
         rescue
         end
         log "  restoring main public database..."
-        cmd="pg_restore -c -j 5 -v -h #{public_host_name} -p 5432 -U #{super_username} -d #{db_name} #{dump_file_name}"
+        cmd="pg_restore -c -j 5 -v -h #{public_host_name} -p 5432 -U #{super_username} -d #{db_name} --schema=ctgov #{dump_file_name}"
         run_restore_command_line(cmd)
         grant_db_privs
         return success_code

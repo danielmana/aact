@@ -14,6 +14,66 @@ module Util
       @errors = []
     end
 
+    def download_eudract_text_file(nct_id, eudract_id)
+      tries ||= 5
+
+      file_name="#{Util::FileManager.new.eudract_file_directory}/EU_#{nct_id}_#{eudract_id}.txt"
+      file = File.new file_name, 'w'
+
+      begin
+        download = RestClient::Request.execute({
+          url:          "https://www.clinicaltrialsregister.eu/ctr-search/rest/download/trial/#{eudract_id}/ES",
+          method:       :get,
+          content_type: 'application/octet-stream',
+          verify_ssl:   false
+        })
+      rescue Errno::ECONNRESET => e
+        if (tries -=1) > 0
+          puts "  download failed.  trying again..."
+          retry
+        end
+      end
+      if download.include? "<!DOCTYPE html>"
+        File.delete(file_name)
+        return nil
+      else
+        file.binmode
+        file.write(download)
+        file.size
+        file
+      end
+    end
+
+    def download_reec_json_file(nct_id, eudract_id)
+      tries ||= 5
+
+      file_name="#{Util::FileManager.new.eudract_file_directory}/REEC_#{nct_id}_#{eudract_id}.json"
+      file = File.new file_name, 'w'
+
+      begin
+        download = RestClient::Request.execute({
+          url:          "https://reec.aemps.es/reec-services/json/detalle/#{eudract_id}",
+          method:       :get,
+          content_type: 'application/json;charset=UTF-8',
+          verify_ssl:   false
+        })
+      rescue Errno::ECONNRESET => e
+        if (tries -=1) > 0
+          puts "  download failed.  trying again..."
+          retry
+        end
+      end
+      if download.include? "null"
+        File.delete(file_name)
+        return nil
+      else
+        file.binmode
+        file.write(download)
+        file.size
+        file
+      end
+    end
+
     def download_xml_files
       tries ||= 5
 

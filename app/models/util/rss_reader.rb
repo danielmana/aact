@@ -14,11 +14,11 @@ module Util
       @added_url   = "#{BASE_URL}/ct2/results/rss.xml?rcv_d=#{days_back}&count=#{PAGE_SIZE}"
     end
 
-    def get_changed_nct_ids
+    def get_changed_nct_ids(filters)
       list = []
       start = 0
       loop do
-        result = get_changed_nct_ids_batch(start)
+        result = get_changed_nct_ids_batch("#{filters}&start=#{start}")
         list += result
         start += PAGE_SIZE
         break if result.length == 0
@@ -26,11 +26,11 @@ module Util
       list
     end
 
-    def get_added_nct_ids
+    def get_added_nct_ids(filters)
       list = []
       start = 0
       loop do
-        result = get_added_nct_ids_batch(start)
+        result = get_added_nct_ids_batch("#{filters}&start=#{start}")
         list += result
         start += PAGE_SIZE
         break if result.length == 0
@@ -38,14 +38,14 @@ module Util
       list
     end
 
-    def get_changed_nct_ids_batch(start)
+    def get_changed_nct_ids_batch(filters)
       tries ||= 5
       begin
-        feed = RSS::Parser.parse("#{@changed_url}&start=#{start}", false)
+        feed = RSS::Parser.parse("#{@changed_url}&#{filters}", false)
         feed.items.map(&:guid).map(&:content)
       rescue  Exception => e
         if (tries -=1) > 0
-          puts "Failed: #{@added_url}.  trying again..."
+          puts "Failed: #{@changed_url}.  trying again..."
           puts "Error: #{e}"
           retry
         else #give up & return empty array
@@ -54,10 +54,10 @@ module Util
       end
     end
 
-    def get_added_nct_ids_batch(start)
+    def get_added_nct_ids_batch(filters)
       tries ||= 5
       begin
-        feed = RSS::Parser.parse("#{@added_url}&start=#{start}", false)
+        feed = RSS::Parser.parse("#{@added_url}&#{filters}", false)
         feed.items.map(&:guid).map(&:content)
       rescue  Exception => e
         if (tries -=1) > 0

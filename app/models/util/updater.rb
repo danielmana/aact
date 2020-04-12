@@ -65,8 +65,48 @@ module Util
     def incremental
       log("begin incremental load...")
       log("finding studies changed in past #{@days_back} days...")
-      added_ids = @rss_reader.get_added_nct_ids
-      changed_ids = @rss_reader.get_changed_nct_ids
+      # filters = 'cntry=ES&type=Intr&recrs=b&recrs=a&recrs=f&sfpd_s=01/01/2018&lupd_s=01/01/2020&sort=nwst&'
+      base_filters = 'cntry=ES&recrs=b&recrs=a&recrs=f&sort=nwst'
+
+      # cancer
+      filters_cancer = "#{base_filters}&cond=cancer&type=Intr"
+      added_cancer_ids = @rss_reader.get_added_nct_ids(filters_cancer)
+      changed_cancer_ids = @rss_reader.get_changed_nct_ids(filters_cancer)
+      log("#{added_cancer_ids.size} added_cancer_ids")
+      log("#{changed_cancer_ids.size} changed_cancer_ids")
+
+      # covid19: interventional
+      filters_covid_interventional = "#{base_filters}&cond=covid&type=Intr"
+      added_covid_interventional_ids = @rss_reader.get_added_nct_ids(filters_covid_interventional)
+      changed_covid_interventional_ids = @rss_reader.get_changed_nct_ids(filters_covid_interventional)
+      log("#{added_covid_interventional_ids.size} added_covid_interventional_ids")
+      log("#{changed_covid_interventional_ids.size} changed_covid_interventional_ids")
+
+      # covid19: observational
+      filters_covid_observational = "#{base_filters}&cond=covid&type=Obsr"
+      added_covid_observational_ids = @rss_reader.get_added_nct_ids(filters_covid_observational)
+      changed_covid_observational_ids = @rss_reader.get_changed_nct_ids(filters_covid_observational)
+      log("#{added_covid_observational_ids.size} added_covid_observational_ids")
+      log("#{changed_covid_observational_ids.size} changed_covid_observational_ids")
+
+      # coronavirus: interventional
+      filters_coronavirus_interventional = "#{base_filters}&cond=coronavirus&type=Intr"
+      added_coronavirus_interventional_ids = @rss_reader.get_added_nct_ids(filters_coronavirus_interventional)
+      changed_coronavirus_interventional_ids = @rss_reader.get_changed_nct_ids(filters_coronavirus_interventional)
+      log("#{added_coronavirus_interventional_ids.size} added_coronavirus_interventional_ids")
+      log("#{changed_coronavirus_interventional_ids.size} changed_coronavirus_interventional_ids")
+
+      # coronavirus: observational
+      filters_coronavirus_observational = "#{base_filters}&cond=coronavirus&type=Obsr"
+      added_coronavirus_observational_ids = @rss_reader.get_added_nct_ids(filters_coronavirus_observational)
+      changed_coronavirus_observational_ids = @rss_reader.get_changed_nct_ids(filters_coronavirus_observational)
+      log("#{added_coronavirus_observational_ids.size} added_coronavirus_observational_ids")
+      log("#{changed_coronavirus_observational_ids.size} changed_coronavirus_observational_ids")
+
+      # all added/changed IDs
+      added_ids=(added_cancer_ids + added_covid_interventional_ids + added_covid_observational_ids + added_coronavirus_interventional_ids + added_coronavirus_observational_ids).uniq
+      changed_ids=(changed_cancer_ids + changed_covid_interventional_ids + changed_covid_observational_ids + changed_coronavirus_interventional_ids + changed_coronavirus_observational_ids).uniq
+
       log("#{added_ids.size} added studies: #{@rss_reader.added_url}")
       log("#{changed_ids.size} changed studies: #{@rss_reader.changed_url}")
       study_counts[:should_add]=added_ids.size
@@ -259,7 +299,33 @@ module Util
         stime=Time.zone.now
         verify_xml=(new_xml.xpath('//clinical_study').xpath('source').text).strip
         if verify_xml.size > 1
-          Study.new({ xml: new_xml, nct_id: nct_id }).create
+          study=Study.new({ xml: new_xml, nct_id: nct_id }).create
+
+          # EudraCT
+          secondary_id=study.id_information.select{|x|x.id_type=='secondary_id'}.first
+          if secondary_id and secondary_id.id_value =~ /20\d+-\d+-\d+/
+            eudract_id=secondary_id.id_value
+            log(" - #{nct_id} > #{eudract_id}")
+
+            # fetch from https://www.clinicaltrialsregister.eu
+            file=@client.download_eudract_text_file(nct_id, eudract_id)
+            if file.nil?
+              log(" - EU: No")
+            else
+              log(" - EU: Yes!")
+              system("#{Rails.root.join('bin', 'euctr2json.sh')} #{file.path.sub! '.txt', ''}")
+              File.delete(file.path)
+            end
+
+            # fetch from http://reec.aemps.es
+            file=@client.download_reec_json_file(nct_id, eudract_id)
+            if file.nil?
+              log(" - REEC: No")
+            else
+              log(" - REEC: Yes!")
+            end
+          end
+
           study_counts[:processed]+=1
           show_progress(nct_id, " refreshed #{Time.zone.now - stime}")
         else
