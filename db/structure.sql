@@ -1049,6 +1049,95 @@ CREATE SEQUENCE ctgov.detailed_descriptions_id_seq
 
 ALTER SEQUENCE ctgov.detailed_descriptions_id_seq OWNED BY ctgov.detailed_descriptions.id;
 
+--
+-- Name: reec_studies; Type: TABLE; Schema: ctgov; Owner: -
+--
+
+CREATE TABLE ctgov.reec_studies (
+    id integer NOT NULL,
+    nct_id character varying,
+    eudract_id character varying NOT NULL,
+    acronimo character varying,
+    enfermedad_rara character varying
+);
+
+
+--
+-- Name: reec_studies_id_seq; Type: SEQUENCE; Schema: ctgov; Owner: -
+--
+
+CREATE SEQUENCE ctgov.reec_studies_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: reec_studies_id_seq; Type: SEQUENCE OWNED BY; Schema: ctgov; Owner: -
+--
+
+ALTER SEQUENCE ctgov.reec_studies_id_seq OWNED BY ctgov.reec_studies.id;
+
+
+--
+-- Name: reec_informations; Type: TABLE; Schema: ctgov; Owner: -
+--
+
+CREATE TABLE ctgov.reec_informations (
+    id integer NOT NULL,
+    nct_id character varying,
+    eudract_id character varying NOT NULL,
+    titulo_publico text,
+    titulo_publico_en text,
+    titulo_cientifico text,
+    titulo_cientifico_en text,
+    indicacion_publica text,
+    indicacion_publica_en text,
+    indicacion_cientifica text,
+    indicacion_cientifica_en text,
+    criterios_inclusion text,
+    criterios_inclusion_en text,
+    criterios_exclusion text,
+    criterios_exclusion_en text,
+    variables_principales text,
+    variables_principales_en text,
+    variables_secundarias text,
+    variables_secundarias_en text,
+    objetivo_principal text,
+    objetivo_principal_en text,
+    objetivo_secundario text,
+    objetivo_secundario_en text,
+    momentos_principales text,
+    momentos_principales_en text,
+    momentos_secundarios text,
+    momentos_secundarios_en text,
+    justificacion text,
+    justificacion_en text
+);
+
+
+--
+-- Name: reec_informations_id_seq; Type: SEQUENCE; Schema: ctgov; Owner: -
+--
+
+CREATE SEQUENCE ctgov.reec_informations_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: reec_informations_id_seq; Type: SEQUENCE OWNED BY; Schema: ctgov; Owner: -
+--
+
+ALTER SEQUENCE ctgov.reec_informations_id_seq OWNED BY ctgov.reec_informations.id;
+
 
 --
 -- Name: documents; Type: TABLE; Schema: ctgov; Owner: -
@@ -2356,6 +2445,20 @@ ALTER TABLE ONLY ctgov.detailed_descriptions ALTER COLUMN id SET DEFAULT nextval
 
 
 --
+-- Name: reec_studies id; Type: DEFAULT; Schema: ctgov; Owner: -
+--
+
+ALTER TABLE ONLY ctgov.reec_studies ALTER COLUMN id SET DEFAULT nextval('ctgov.reec_studies_id_seq'::regclass);
+
+
+--
+-- Name: reec_informations id; Type: DEFAULT; Schema: ctgov; Owner: -
+--
+
+ALTER TABLE ONLY ctgov.reec_informations ALTER COLUMN id SET DEFAULT nextval('ctgov.reec_informations_id_seq'::regclass);
+
+
+--
 -- Name: documents id; Type: DEFAULT; Schema: ctgov; Owner: -
 --
 
@@ -2703,6 +2806,22 @@ ALTER TABLE ONLY ctgov.designs
 
 ALTER TABLE ONLY ctgov.detailed_descriptions
     ADD CONSTRAINT detailed_descriptions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: reec_studies reec_studies_pkey; Type: CONSTRAINT; Schema: ctgov; Owner: -
+--
+
+ALTER TABLE ONLY ctgov.reec_studies
+    ADD CONSTRAINT reec_studies_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: reec_informations reec_informations_pkey; Type: CONSTRAINT; Schema: ctgov; Owner: -
+--
+
+ALTER TABLE ONLY ctgov.reec_informations
+    ADD CONSTRAINT reec_informations_pkey PRIMARY KEY (id);
 
 
 --

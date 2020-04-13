@@ -128,4 +128,9 @@ class StudyRelationship < ActiveRecord::Base
     get('phone')
   end
 
+  def get_reec(key)
+    hash=@opts[:reec_hash]
+    return hash && hash[key]
+  end
+
 end

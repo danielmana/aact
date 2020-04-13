@@ -14,7 +14,7 @@ module Util
       @errors = []
     end
 
-    def download_eudract_text_file(nct_id, eudract_id)
+    def download_eudract_file(nct_id, eudract_id)
       tries ||= 5
 
       file_name="#{Util::FileManager.new.eudract_file_directory}/EU_#{nct_id}_#{eudract_id}.txt"
@@ -44,7 +44,7 @@ module Util
       end
     end
 
-    def download_reec_json_file(nct_id, eudract_id)
+    def download_reec_file(nct_id, eudract_id)
       tries ||= 5
 
       file_name="#{Util::FileManager.new.eudract_file_directory}/REEC_#{nct_id}_#{eudract_id}.json"

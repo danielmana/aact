@@ -7,7 +7,7 @@ end
 
 class Study < ActiveRecord::Base
 
-  attr_accessor :xml, :with_related_records, :with_related_organizations
+  attr_accessor :xml, :reec_hash, :with_related_records, :with_related_organizations
 
   def as_indexed_json(options = {})
     self.as_json({
@@ -84,12 +84,14 @@ class Study < ActiveRecord::Base
     super
     @xml=hash[:xml]
     self.nct_id=hash[:nct_id]
+    @reec_hash=hash[:reec_hash]
   end
 
   def opts
     {
       :xml=>xml,
-      :nct_id=>nct_id
+      :nct_id=>nct_id,
+      :reec_hash=>reec_hash
     }
   end
 
@@ -109,6 +111,8 @@ class Study < ActiveRecord::Base
     BriefSummary.new.create_from(opts).try(:save)
     Eligibility.new.create_from(opts).save
     ParticipantFlow.new.create_from(opts).try(:save)
+    ReecStudy.new.create_from(opts).try(:save)
+    ReecInformation.new.create_from(opts).try(:save)
 
     BaselineMeasurement.create_all_from(opts)
     BrowseCondition.create_all_from(opts)

@@ -1,3 +1,5 @@
+require 'json'
+
 module Util
  class Updater
     attr_reader :params, :load_event, :client, :study_counts, :days_back, :rss_reader, :db_mgr, :full_featured
@@ -177,7 +179,9 @@ module Util
         'eligibilities',
         'participant_flows',
         'calculated_values',
-        'studies'
+        'studies',
+        'reec_studies',
+        'reec_informations'
       ]
     end
 
@@ -299,33 +303,38 @@ module Util
         stime=Time.zone.now
         verify_xml=(new_xml.xpath('//clinical_study').xpath('source').text).strip
         if verify_xml.size > 1
-          study=Study.new({ xml: new_xml, nct_id: nct_id }).create
-
+          
           # EudraCT
-          secondary_id=study.id_information.select{|x|x.id_type=='secondary_id'}.first
-          if secondary_id and secondary_id.id_value =~ /20\d+-\d+-\d+/
-            eudract_id=secondary_id.id_value
-            log(" - #{nct_id} > #{eudract_id}")
+          reec_hash=nil
+          secondary_ids=new_xml.xpath('//secondary_id')
+          secondary_ids.each{|v|
+            if v and v.text =~ /20\d+-\d+-\d+/
+              eudract_id=v.text
+              log(" - #{nct_id} > #{eudract_id}")
 
-            # fetch from https://www.clinicaltrialsregister.eu
-            file=@client.download_eudract_text_file(nct_id, eudract_id)
-            if file.nil?
-              log(" - EU: No")
-            else
-              log(" - EU: Yes!")
-              system("#{Rails.root.join('bin', 'euctr2json.sh')} #{file.path.sub! '.txt', ''}")
-              File.delete(file.path)
+              # fetch from https://www.clinicaltrialsregister.eu
+              file=@client.download_eudract_file(nct_id, eudract_id)
+              if file.nil?
+                log(" - EU: No")
+              else
+                log(" - EU: Yes!")
+                system("#{Rails.root.join('bin', 'euctr2json.sh')} #{file.path.sub! '.txt', ''}")
+                File.delete(file.path)
+              end
+
+              # fetch from http://reec.aemps.es
+              file=@client.download_reec_file(nct_id, eudract_id)
+              if file.nil?
+                log(" - REEC: No")
+              else
+                log(" - REEC: Yes!")
+                File.open(file.path) do |f|
+                  reec_hash = JSON.parse(f.read)
+                end
+              end
             end
-
-            # fetch from http://reec.aemps.es
-            file=@client.download_reec_json_file(nct_id, eudract_id)
-            if file.nil?
-              log(" - REEC: No")
-            else
-              log(" - REEC: Yes!")
-            end
-          end
-
+          }
+          study=Study.new({ xml: new_xml, nct_id: nct_id, reec_hash: reec_hash }).create
           study_counts[:processed]+=1
           show_progress(nct_id, " refreshed #{Time.zone.now - stime}")
         else
