@@ -1,40 +1,55 @@
 class ReecInformation < StudyRelationship
+  self.table_name = 'reec_informations'
 
-  def attribs
-    eudract_id=get_reec('identificador')
-    if eudract_id.blank?
-      nil
-    else
-      hash=get_reec('informacion')
-      {
+  def self.get(hash, key)
+    val=hash && hash[key]
+    return val && val.force_encoding('iso8859-1').encode('utf-8')
+  end
+
+  def self.create_all_from(opts)
+    nct_id=opts[:nct_id]
+    reec_hash=opts[:reec_hash]
+    if !reec_hash.nil?
+      eudract_id=reec_hash['identificador']
+      hash=reec_hash['informacion']
+      col=[]
+      col << new({
+        :nct_id => nct_id,
         :eudract_id => eudract_id,
-        :titulo_publico => hash['tituloPublico'],
-        :titulo_publico_en => hash['tituloPublico_en'],
-        :titulo_cientifico => hash['tituloCientifico'],
-        :titulo_cientifico_en => hash['tituloCientifico_en'],
-        :indicacion_publica => hash['indicacionPublica'],
-        :indicacion_publica_en => hash['indicacionPublica_en'],
-        :indicacion_cientifica => hash['indicacionCientifica'],
-        :indicacion_cientifica_en => hash['indicacionCientifica_en'],
-        :criterios_inclusion => hash['criteriosInclusion'],
-        :criterios_inclusion_en => hash['criteriosInclusion_en'],
-        :criterios_exclusion => hash['criteriosExclusion'],
-        :criterios_exclusion_en => hash['criteriosExclusion_en'],
-        :variables_principales => hash['variablesPrincipales'],
-        :variables_principales_en => hash['variablesPrincipales_en'],
-        :variables_secundarias => hash['variablesSecundarias'],
-        :variables_secundarias_en => hash['variablesSecundarias_en'],
-        :objetivo_principal => hash['objetivoPrincipal'],
-        :objetivo_principal_en => hash['objetivoPrincipal_en'],
-        :objetivo_secundario => hash['objetivoSecundario'],
-        :objetivo_secundario_en => hash['objetivoSecundario_en'],
-        :momentos_principales => hash['momentosPrincipales'],
-        :momentos_principales_en => hash['momentosPrincipales_en'],
-        :momentos_secundarios => hash['momentosSecundarios'],
-        :momentos_secundarios_en => hash['momentosSecundarios_en'],
-        :justificacion => hash['justificacion'],
-        :justificacion_en => hash['justificacion_en']
-      }
+        :locale => 'en',
+        :titulo_publico => get(hash, 'tituloPublico_en'),
+        :titulo_cientifico => get(hash, 'tituloCientifico_en'),
+        :indicacion_publica => get(hash, 'indicacionPublica_en'),
+        :indicacion_cientifica => get(hash, 'indicacionCientifica_en'),
+        :criterios_inclusion => get(hash, 'criteriosInclusion_en'),
+        :criterios_exclusion => get(hash, 'criteriosExclusion_en'),
+        :variables_principales => get(hash, 'variablesPrincipales_en'),
+        :variables_secundarias => get(hash, 'variablesSecundarias_en'),
+        :objetivo_principal => get(hash, 'objetivoPrincipal_en'),
+        :objetivo_secundario => get(hash, 'objetivoSecundario_en'),
+        :momentos_principales => get(hash, 'momentosPrincipales_en'),
+        :momentos_secundarios => get(hash, 'momentosSecundarios_en'),
+        :justificacion => get(hash, 'justificacion_en'),
+      })
+      col << new({
+        :nct_id => nct_id,
+        :eudract_id => eudract_id,
+        :locale => 'es',
+        :titulo_publico => get(hash, 'tituloPublico'),
+        :titulo_cientifico => get(hash, 'tituloCientifico'),
+        :indicacion_publica => get(hash, 'indicacionPublica'),
+        :indicacion_cientifica => get(hash, 'indicacionCientifica'),
+        :criterios_inclusion => get(hash, 'criteriosInclusion'),
+        :criterios_exclusion => get(hash, 'criteriosExclusion'),
+        :variables_principales => get(hash, 'variablesPrincipales'),
+        :variables_secundarias => get(hash, 'variablesSecundarias'),
+        :objetivo_principal => get(hash, 'objetivoPrincipal'),
+        :objetivo_secundario => get(hash, 'objetivoSecundario'),
+        :momentos_principales => get(hash, 'momentosPrincipales'),
+        :momentos_secundarios => get(hash, 'momentosSecundarios'),
+        :justificacion => get(hash, 'justificacion'),
+      })
+      import(col)
     end
   end
 

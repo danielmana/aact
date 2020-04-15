@@ -128,6 +128,12 @@ class StudyRelationship < ActiveRecord::Base
     get('phone')
   end
 
+  def get_euctr(key)
+    hash=@opts[:euctr_hash]
+    val=hash && hash[key]
+    return val && val.force_encoding('iso8859-1').encode('utf-8')
+  end
+
   def get_reec(key)
     hash=@opts[:reec_hash]
     return hash && hash[key]

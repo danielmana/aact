@@ -180,8 +180,8 @@ module Util
         'participant_flows',
         'calculated_values',
         'studies',
-        'reec_studies',
-        'reec_informations'
+        'euctr_studies',
+        'reec_studies'
       ]
     end
 
@@ -306,6 +306,7 @@ module Util
           
           # EudraCT
           reec_hash=nil
+          euctr_hash=nil
           secondary_ids=new_xml.xpath('//secondary_id')
           secondary_ids.each{|v|
             if v and v.text =~ /20\d+-\d+-\d+/
@@ -318,8 +319,12 @@ module Util
                 log(" - EU: No")
               else
                 log(" - EU: Yes!")
-                system("#{Rails.root.join('bin', 'euctr2json.sh')} #{file.path.sub! '.txt', ''}")
-                File.delete(file.path)
+                without_extension=file.path.sub! '.txt', ''
+                system("#{Rails.root.join('bin', 'euctr2json.sh')} #{without_extension}")
+                File.delete("#{without_extension}.txt")
+                File.open("#{without_extension}.json") do |f|
+                  euctr_hash = JSON.parse(f.read)
+                end
               end
 
               # fetch from http://reec.aemps.es
@@ -334,7 +339,7 @@ module Util
               end
             end
           }
-          study=Study.new({ xml: new_xml, nct_id: nct_id, reec_hash: reec_hash }).create
+          study=Study.new({ xml: new_xml, nct_id: nct_id, euctr_hash: euctr_hash, reec_hash: reec_hash }).create
           study_counts[:processed]+=1
           show_progress(nct_id, " refreshed #{Time.zone.now - stime}")
         else

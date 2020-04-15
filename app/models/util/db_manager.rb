@@ -373,7 +373,7 @@ module Util
     end
 
     def one_to_one_related_tables
-      [ 'brief_summaries', 'designs', 'detailed_descriptions', 'eligibilities', 'participant_flows', 'calculated_values', 'reec_studies', 'reec_informations' ]
+      [ 'brief_summaries', 'designs', 'detailed_descriptions', 'eligibilities', 'participant_flows', 'calculated_values', 'euctr_studies', 'reec_studies' ]
     end
 
     def should_keep_index?(index)

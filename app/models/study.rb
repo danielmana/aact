@@ -7,7 +7,7 @@ end
 
 class Study < ActiveRecord::Base
 
-  attr_accessor :xml, :reec_hash, :with_related_records, :with_related_organizations
+  attr_accessor :xml, :euctr_hash, :reec_hash, :with_related_records, :with_related_organizations
 
   def as_indexed_json(options = {})
     self.as_json({
@@ -78,12 +78,17 @@ class Study < ActiveRecord::Base
   has_many :result_contacts,       :foreign_key => 'nct_id', :dependent => :delete_all
   has_many :result_groups,         :foreign_key => 'nct_id', :dependent => :delete_all
   has_many :sponsors,              :foreign_key => 'nct_id', :dependent => :delete_all
+  has_many :euctr_informations,    :foreign_key => 'nct_id', :dependent => :delete_all
+  has_many :euctr_sponsors,        :foreign_key => 'nct_id', :dependent => :delete_all
+  has_many :reec_informations,     :foreign_key => 'nct_id', :dependent => :delete_all
+  has_many :reec_sponsors,         :foreign_key => 'nct_id', :dependent => :delete_all
   accepts_nested_attributes_for :outcomes
 
   def initialize(hash)
     super
     @xml=hash[:xml]
     self.nct_id=hash[:nct_id]
+    @euctr_hash=hash[:euctr_hash]
     @reec_hash=hash[:reec_hash]
   end
 
@@ -91,6 +96,7 @@ class Study < ActiveRecord::Base
     {
       :xml=>xml,
       :nct_id=>nct_id,
+      :euctr_hash=>euctr_hash,
       :reec_hash=>reec_hash
     }
   end
@@ -111,8 +117,9 @@ class Study < ActiveRecord::Base
     BriefSummary.new.create_from(opts).try(:save)
     Eligibility.new.create_from(opts).save
     ParticipantFlow.new.create_from(opts).try(:save)
+    EuctrStudy.new.create_from(opts).try(:save)
     ReecStudy.new.create_from(opts).try(:save)
-    ReecInformation.new.create_from(opts).try(:save)
+    ReecSponsor.new.create_from(opts).try(:save)
 
     BaselineMeasurement.create_all_from(opts)
     BrowseCondition.create_all_from(opts)
@@ -138,6 +145,9 @@ class Study < ActiveRecord::Base
     ResultContact.create_all_from(opts)
     Reference.create_all_from(opts)
     Sponsor.create_all_from(opts)
+    EuctrInformation.create_all_from(opts)
+    EuctrSponsor.create_all_from(opts)
+    ReecInformation.create_all_from(opts)
     # During full load, indexes are dropped. Populating CalculatedValues requires several db queries - so they're scanned and very slow.
     # Populate the CalculatedValues after the indexes have been recreated after the full load completes.
     #CalculatedValue.new.create_from(self).save
