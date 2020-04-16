@@ -119,7 +119,6 @@ class Study < ActiveRecord::Base
     ParticipantFlow.new.create_from(opts).try(:save)
     EuctrStudy.new.create_from(opts).try(:save)
     ReecStudy.new.create_from(opts).try(:save)
-    ReecSponsor.new.create_from(opts).try(:save)
 
     BaselineMeasurement.create_all_from(opts)
     BrowseCondition.create_all_from(opts)
@@ -148,6 +147,7 @@ class Study < ActiveRecord::Base
     EuctrInformation.create_all_from(opts)
     EuctrSponsor.create_all_from(opts)
     ReecInformation.create_all_from(opts)
+    ReecSponsor.create_all_from(opts)
     # During full load, indexes are dropped. Populating CalculatedValues requires several db queries - so they're scanned and very slow.
     # Populate the CalculatedValues after the indexes have been recreated after the full load completes.
     #CalculatedValue.new.create_from(self).save

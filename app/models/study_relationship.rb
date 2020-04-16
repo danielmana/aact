@@ -128,15 +128,31 @@ class StudyRelationship < ActiveRecord::Base
     get('phone')
   end
 
+  def log(msg)
+    puts "#{Time.zone.now}: #{msg}"  # log to STDOUT
+  end
+
   def get_euctr(key)
     hash=@opts[:euctr_hash]
     val=hash && hash[key]
-    return val && val.force_encoding('iso8859-1').encode('utf-8')
+    if !val
+      nil
+    else
+      begin
+        # val=val.force_encoding('iso8859-1').encode('utf-8')
+        val.strip!
+        val
+      rescue
+        log("Encoding: #{val.encoding}")
+        log("val: #{val}")
+      end
+    end
   end
 
   def get_reec(key)
     hash=@opts[:reec_hash]
-    return hash && hash[key]
+    val=hash && hash[key]
+    val && val.strip
   end
 
 end
